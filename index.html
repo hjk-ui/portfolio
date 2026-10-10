@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vishal Choudhary | Flutter Developer (1.5 Years Experience)</title>
+  <meta name="description" content="Portfolio of Vishal Choudhary, Flutter Developer with 1.5 years experience building cross-platform Android and iOS applications with WebSockets, Supabase, PushKit/CallKit, and live App Store/Play Store deployments.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Ambient Grid Background -->
+  <div class="bg-grid-layer"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="#" class="brand-logo">
+        <div class="brand-icon">VC</div>
+        <div class="brand-text">Vishal<span>Choudhary</span></div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#apps" class="active">Live Apps</a></li>
+        <li><a href="#deviceShowcase">Device Simulator</a></li>
+        <li><a href="#skills">Technical Skills</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#education">Education</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+
+      <div class="nav-cta">
+        <button id="viewResumeBtn" class="btn btn-secondary btn-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          View Resume
+        </button>
+        <a href="#contact" class="btn btn-primary btn-sm">Hire Vishal</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-meta-badge">
+          <span class="badge-pulse"></span>
+          <span>Kangra, Himachal Pradesh &bull; 1.5 Years Hands-On Flutter Experience</span>
+        </div>
+
+        <h1 class="hero-title">
+          Hi, I'm <span class="gradient-text">Vishal Choudhary</span>.<br>
+          Flutter Mobile Application Developer.
+        </h1>
+
+        <p class="hero-subtitle">
+          Specialized in building, testing, and deploying high-concurrency cross-platform Android and iOS applications at <strong>Vision Vivante Private Limited</strong> and <strong>Grow Tech</strong>. Proven track record contributing to production apps live on the <strong>Apple App Store</strong> and <strong>Google Play Store</strong> including <strong>MariSpeaks</strong>, <strong>TowTraces</strong>, <strong>Viral Flight IN</strong>, <strong>NVT USA</strong>, <strong>Altrix</strong>, and <strong>Galaxy Advertisers</strong>.
+        </p>
+
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <a href="#apps" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            Explore Production Apps & Store Links
+          </a>
+          <a href="#deviceShowcase" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Interactive Phone Lab
+          </a>
+        </div>
+
+        <div class="hero-stats-row">
+          <div class="stat-card">
+            <div class="stat-number">6+</div>
+            <div class="stat-label">Live App Store / Play Store Apps</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">1.5 Yrs</div>
+            <div class="stat-label">Flutter & Dart Experience</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Native Android & iOS CI/CD</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Interactive Phone Device Mockup -->
+      <div class="device-showcase-wrap" id="deviceShowcase">
+        <div class="phone-glow-backing"></div>
+        <div>
+          <div class="phone-mockup">
+            <div class="phone-island">
+              <div class="island-camera"></div>
+              <div class="island-sensor"></div>
+            </div>
+            <div class="phone-screen">
+              <div class="phone-status-bar">
+                <span>9:41</span>
+                <div class="phone-status-icons">
+                  <span>5G</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              <!-- Dynamic Phone Screen Content -->
+              <div class="phone-app-content" id="phoneAppContent">
+                <!-- Injected via JavaScript -->
+              </div>
+
+              <div class="phone-home-indicator"></div>
+            </div>
+          </div>
+
+          <!-- Controller Tabs Under Phone -->
+          <div class="phone-controller">
+            <button class="phone-tab-btn active" data-app="marispeak">MariSpeaks PTT</button>
+            <button class="phone-tab-btn" data-app="towtraces">TowTraces</button>
+            <button class="phone-tab-btn" data-app="viralflight">Viral Flight IN</button>
+            <button class="phone-tab-btn" data-app="nvtusa">NVT USA</button>
+            <button class="phone-tab-btn" data-app="altrix">Altrix</button>
+            <button class="phone-tab-btn" data-app="galaxyadvertisers">Galaxy Advertisers</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Production Projects Section -->
+  <section class="container" id="apps" style="padding-top: 80px; padding-bottom: 50px;">
+    <div class="section-header">
+      <span class="section-tag">Verified Production Portfolio</span>
+      <h2 class="section-title">Applications & Store Deployments</h2>
+      <p class="section-desc">
+        Click on <strong>"Store URLs ↗"</strong> to open direct Apple App Store and Google Play Store distribution links, or test them in the live simulator.
+      </p>
+    </div>
+
+    <!-- Category Filter Bar -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">All Applications (7)</button>
+      <button class="filter-btn" data-filter="realtime">Real-Time & WebSockets (2)</button>
+      <button class="filter-btn" data-filter="baas">BaaS & Supabase (1)</button>
+      <button class="filter-btn" data-filter="cloud">Healthcare & Audio (1)</button>
+      <button class="filter-btn" data-filter="enterprise">Enterprise & Commerce (3)</button>
+    </div>
+
+    <!-- Dynamic Grid for Projects -->
+    <div class="projects-grid" id="projectsGrid">
+      <!-- Injected by script.js -->
+    </div>
+  </section>
+
+  <!-- Skills & Engineering Matrix from Resume -->
+  <section class="skills-section" id="skills">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Technical Competencies</span>
+        <h2 class="section-title">Technical Skills & Architecture Matrix</h2>
+        <p class="section-desc">
+          Verified skills straight from hands-on development and production deployments.
+        </p>
+      </div>
+
+      <div class="skills-matrix-grid">
+        <!-- Card 1: Mobile & State Management -->
+        <div class="skill-category-card">
+          <div class="skill-cat-header">
+            <div class="skill-cat-icon">📱</div>
+            <h3 class="skill-cat-title">Mobile & State Management</h3>
+          </div>
+          <div class="skill-item-list">
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>Flutter & Dart (Android & iOS)</span>
+                <span style="color:var(--accent-cyan);">Expert</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 95%;"></div>
+              </div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>State Management (GetX, Riverpod)</span>
+                <span style="color:var(--accent-cyan);">95%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 95%;"></div>
+              </div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>Responsive UI & Reusable Widgets</span>
+                <span style="color:var(--accent-cyan);">92%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 92%;"></div>
+              </div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>Navigation & Deep Linking</span>
+                <span style="color:var(--accent-cyan);">90%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 90%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Real-Time & Backend APIs -->
+        <div class="skill-category-card">
+          <div class="skill-cat-header">
+            <div class="skill-cat-icon">⚡</div>
+            <h3 class="skill-cat-title">Real-Time & Backend / APIs</h3>
+          </div>
+          <div class="skill-item-list">
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>WebSockets & Push-to-Talk (PTT)</span>
+                <span style="color:var(--accent-cyan);">94%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 94%;"></div>
+              </div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>Audio Calling & Real-Time Chat</span>
+                <span style="color:var(--accent-cyan);">92%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 92%;"></div>
+              </div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>Supabase (PostgreSQL) & Firebase</span>
+                <span style="color:var(--accent-cyan);">90%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 90%;"></div>
+              </div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>REST APIs, JSON, Postman & Django</span>
+                <span style="color:var(--accent-cyan);">92%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 92%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Integrations & CI/CD Release -->
+        <div class="skill-category-card">
+          <div class="skill-cat-header">
+            <div class="skill-cat-icon">🚀</div>
+            <h3 class="skill-cat-title">Hardware, Maps & CI/CD</h3>
+          </div>
+          <div class="skill-item-list">
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>Google Maps, GPS & Location Tracking</span>
+                <span style="color:var(--accent-cyan);">93%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 93%;"></div>
+              </div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>PushKit, CallKit, APNs & FCM</span>
+                <span style="color:var(--accent-cyan);">94%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 94%;"></div>
+              </div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>App Signing, Certificates & TestFlight</span>
+                <span style="color:var(--accent-cyan);">92%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 92%;"></div>
+              </div>
+            </div>
+            <div class="skill-row">
+              <div class="skill-row-meta">
+                <span>App Store & Google Play Store Releases</span>
+                <span style="color:var(--accent-cyan);">96%</span>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar" style="width: 96%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Work Experience Timeline from Resume -->
+  <section class="experience-section" id="experience">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Career History</span>
+        <h2 class="section-title">Professional Experience</h2>
+        <p class="section-desc">
+          Commercial mobile engineering background across full-time and internship tenures.
+        </p>
+      </div>
+
+      <div class="timeline-wrap">
+        <!-- Experience 1: Vision Vivante -->
+        <div class="timeline-item">
+          <div class="timeline-node"></div>
+          <div class="timeline-card">
+            <div class="timeline-header">
+              <div>
+                <h3 class="timeline-role">Flutter Developer</h3>
+                <div class="timeline-company">Vision Vivante Private Limited</div>
+              </div>
+              <div class="timeline-period">Jul 2025 - Jul 2026 (1 Year)</div>
+            </div>
+            <ul class="timeline-bullet-list">
+              <li>Developed and maintained cross-platform Flutter applications for Android and iOS using Dart, responsive UI components, reusable widgets, and clean coding practices.</li>
+              <li>Integrated REST APIs, Firebase, Supabase, authentication, push notifications, Google Maps/location services, and real-time communication features using GetX and Riverpod.</li>
+              <li>Contributed to <strong>NVT USA</strong>, a production sports/match application live on both the Apple App Store and Google Play Store, enabling users to view match schedules and related match information.</li>
+              <li>Worked on <strong>Altrix</strong>, a healthcare appointment application with patient appointment booking, real-time chat, audio calling, and backend/API integration.</li>
+              <li>Developed <strong>MariSpeaks</strong> (live on App Store & Play Store) with Push-to-Talk audio streaming, CallKit, PushKit, and WebSockets.</li>
+              <li>Built <strong>TowTraces</strong> vehicle towing and recovery system using Supabase and real-time tracking (live on Apple App Store).</li>
+              <li>Handled testing, debugging, performance optimization, APK/AAB builds, iOS/Android signing, certificates, TestFlight, and production release support.</li>
+              <li>Used AI-assisted development for backend/API implementation and troubleshooting while collaborating in an Agile development environment.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Experience 2: Grow Tech -->
+        <div class="timeline-item">
+          <div class="timeline-node"></div>
+          <div class="timeline-card">
+            <div class="timeline-header">
+              <div>
+                <h3 class="timeline-role">Flutter Developer Intern</h3>
+                <div class="timeline-company">Grow Tech</div>
+              </div>
+              <div class="timeline-period">Jan 2025 - Jun 2025 (6 Months)</div>
+            </div>
+            <ul class="timeline-bullet-list">
+              <li>Completed a six-month Flutter internship focused on mobile UI development, navigation, reusable components, API-ready architecture, and application testing.</li>
+              <li>Built a Zepto-inspired grocery-commerce UI with responsive screens and reusable Flutter widgets.</li>
+              <li>Contributed to the Courier Mentor application by implementing courier/delivery screens and user flows.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Education Section from Resume -->
+  <section class="container" id="education" style="padding: 60px 24px;">
+    <div class="section-header">
+      <span class="section-tag">Academic Background</span>
+      <h2 class="section-title">Education</h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; max-width: 860px; margin: 0 auto;">
+      <div class="glass-panel" style="padding: 24px;">
+        <div style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase;">Aug 2023 - Jul 2025</div>
+        <h3 style="font-family: var(--font-heading); font-size: 1.25rem; margin: 6px 0;">Master of Computer Applications (MCA)</h3>
+        <div style="color: #cbd5e1; font-size: 0.95rem;">PG Degree College, Dharamshala (HP)</div>
+        <div style="margin-top: 10px; font-weight: 700; color: var(--accent-green); font-size: 0.9rem;">CGPA: 7.39</div>
+      </div>
+
+      <div class="glass-panel" style="padding: 24px;">
+        <div style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase;">Aug 2020 - Jul 2023</div>
+        <h3 style="font-family: var(--font-heading); font-size: 1.25rem; margin: 6px 0;">Bachelor of Computer Applications (BCA)</h3>
+        <div style="color: #cbd5e1; font-size: 0.95rem;">MCM DAV College, Kangra (HP)</div>
+        <div style="margin-top: 10px; font-weight: 700; color: var(--accent-green); font-size: 0.9rem;">CGPA: 7.69</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section with exact info -->
+  <section class="contact-section" id="contact">
+    <div class="container">
+      <div class="contact-card">
+        <div class="contact-grid">
+          <div class="contact-info">
+            <span class="badge badge-live" style="margin-bottom: 14px;">Available for Interview & High-Growth Roles</span>
+            <h3>Get in Touch with Vishal Choudhary</h3>
+            <p style="color:var(--text-muted); font-size:1rem; margin-bottom:24px;">
+              Ready to bring hands-on Flutter experience, clean architecture, real-time protocols, and App Store publishing expertise to your team.
+            </p>
+
+            <div class="contact-channels">
+              <a href="mailto:vc46320@gmail.com" class="contact-chip" onclick="copyToClipboard('vc46320@gmail.com', 'Email'); return false;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <div>
+                  <div style="font-size:0.75rem; color:#94a3b8;">Email Address (Click to Copy)</div>
+                  <div style="font-weight:700;">vc46320@gmail.com</div>
+                </div>
+              </a>
+
+              <a href="tel:+917591033165" class="contact-chip" onclick="copyToClipboard('7591033165', 'Phone/WhatsApp'); return false;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                <div>
+                  <div style="font-size:0.75rem; color:#94a3b8;">Phone & WhatsApp</div>
+                  <div style="font-weight:700;">+91 7591033165 (Click to Copy)</div>
+                </div>
+              </a>
+
+              <div class="contact-chip">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <div>
+                  <div style="font-size:0.75rem; color:#94a3b8;">Location</div>
+                  <div style="font-weight:700;">Kangra, Himachal Pradesh, India</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Form -->
+          <div>
+            <form class="contact-form" id="portfolioContactForm">
+              <div class="form-group">
+                <label for="contactName">Recruiter / Engineering Manager Name</label>
+                <input type="text" id="contactName" class="form-control" placeholder="e.g. John Doe (Tech Lead)" required>
+              </div>
+
+              <div class="form-group">
+                <label for="contactEmail">Work Email</label>
+                <input type="email" id="contactEmail" class="form-control" placeholder="e.g. j.doe@company.com" required>
+              </div>
+
+              <div class="form-group">
+                <label for="contactMsg">Message / Opportunity Details</label>
+                <textarea id="contactMsg" class="form-control" rows="4" placeholder="Hi Vishal, we saw your work on MariSpeaks and NVT USA on the App Store. We'd love to discuss a Flutter Developer position..." required></textarea>
+              </div>
+
+              <button type="submit" id="contactSubmitBtn" class="btn btn-primary" style="margin-top:10px; width:100%;">
+                Send Interview Invitation
+              </button>
+              <div id="contactFormStatus" style="display:none; padding:14px; border-radius:12px; margin-top:12px; font-size:0.88rem; line-height:1.5;"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div>
+        &copy; 2026 Vishal Choudhary &bull; Flutter Developer (1.5 Years Experience)
+      </div>
+      <div>
+        Kangra, Himachal Pradesh &bull; vc46320@gmail.com
+      </div>
+    </div>
+  </footer>
+
+  <!-- Store URLs Modal -->
+  <div class="modal-overlay" id="storeModalOverlay">
+    <div class="modal-content">
+      <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+      <h3 id="modalAppTitle" style="font-family:var(--font-heading); font-size:1.5rem; margin-bottom:6px;">Store Distribution</h3>
+      <p id="modalAppDesc" style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">Live URL package links</p>
+      
+      <div id="modalStoreLinks" class="store-link-row">
+        <!-- Injected via script.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Resume Modal from Exact Resume Document -->
+  <div class="modal-overlay" id="resumeModalOverlay">
+    <div class="modal-content" style="max-width:820px;">
+      <button class="modal-close-btn" id="closeResumeBtn">&times;</button>
+      
+      <div style="border-bottom:1px solid var(--border-color); padding-bottom:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-family:var(--font-heading); font-size:2rem; font-weight:800; color:#fff;">VISHAL CHOUDHARY</h2>
+          <div style="color:var(--accent-cyan); font-weight:700; font-size:1rem; letter-spacing:0.5px;">FLUTTER DEVELOPER - 1.5 YEARS EXPERIENCE</div>
+          <div style="color:#94a3b8; font-size:0.85rem; margin-top:4px;">Kangra, Himachal Pradesh &bull; vc46320@gmail.com &bull; 7591033165</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">
+          🖨️ Print / Save as PDF
+        </button>
+      </div>
+
+      <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.7;">
+        <h4 style="color:#fff; text-transform:uppercase; font-size:0.85rem; letter-spacing:1px; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px;">SUMMARY</h4>
+        <p style="margin-bottom:16px;">
+          Flutter Developer with 1.5 years of hands-on experience building, testing, and deploying cross-platform Android and iOS applications. Proficient in Flutter, Dart, REST API integration, Firebase, Supabase, GetX, Riverpod, real-time chat, audio calling, push notifications, Google Maps, CI/CD, app signing, and production release workflows. Contributed to production apps live on both the Apple App Store and Google Play Store, including NVT USA and MariSpeaks. Experienced in AI-assisted backend/API development, debugging, performance optimization, clean architecture, and Agile collaboration.
+        </p>
+
+        <h4 style="color:#fff; text-transform:uppercase; font-size:0.85rem; letter-spacing:1px; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px;">TECHNICAL SKILLS</h4>
+        <div style="margin-bottom:16px; display:flex; flex-direction:column; gap:6px;">
+          <div><strong>Programming Languages:</strong> Dart, Python</div>
+          <div><strong>Mobile Development:</strong> Flutter, Android, iOS, Responsive UI, Reusable Widgets, Navigation</div>
+          <div><strong>State Management:</strong> GetX, Riverpod</div>
+          <div><strong>Backend & APIs:</strong> REST APIs, JSON, Firebase, Supabase, Postman, Django, AI-assisted backend/API development</div>
+          <div><strong>Database:</strong> PostgreSQL (Supabase), MySQL</div>
+          <div><strong>Real-Time & Communication:</strong> Real-Time Chat, WebSocket, Audio Calling, Push-to-Talk, PushKit, CallKit, APNs, FCM</div>
+          <div><strong>Maps & Integrations:</strong> Google Maps, GPS/Location Tracking, Stripe, Push Notifications</div>
+          <div><strong>Tools & CI/CD:</strong> Git, GitHub, VS Code, Android Studio, CI/CD, App Testing, Debugging, APK/AAB, App Signing, Certificates, TestFlight, App Store, Google Play Store</div>
+        </div>
+
+        <h4 style="color:#fff; text-transform:uppercase; font-size:0.85rem; letter-spacing:1px; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px;">PROFESSIONAL EXPERIENCE</h4>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; font-weight:700; color:#fff;">
+            <span>Flutter Developer &bull; Vision Vivante Private Limited</span>
+            <span>Jul 2025 - Jul 2026</span>
+          </div>
+          <ul style="padding-left:18px; margin-top:6px; color:#94a3b8;">
+            <li>Developed and maintained cross-platform Flutter applications for Android and iOS using Dart, responsive UI components, reusable widgets, and clean coding practices.</li>
+            <li>Integrated REST APIs, Firebase, Supabase, authentication, push notifications, Google Maps/location services, and real-time communication features using GetX and Riverpod.</li>
+            <li>Contributed to NVT USA, a production sports/match application live on both the Apple App Store and Google Play Store, enabling users to view match schedules and related match information.</li>
+            <li>Worked on Altrix, a healthcare appointment application with patient appointment booking, real-time chat, audio calling, and backend/API integration.</li>
+            <li>Handled testing, debugging, performance optimization, APK/AAB builds, iOS/Android signing, certificates, TestFlight, and production release support.</li>
+            <li>Used AI-assisted development for backend/API implementation and troubleshooting while collaborating in an Agile development environment.</li>
+          </ul>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; font-weight:700; color:#fff;">
+            <span>Flutter Developer Intern &bull; Grow Tech</span>
+            <span>Jan 2025 - Jun 2025</span>
+          </div>
+          <ul style="padding-left:18px; margin-top:6px; color:#94a3b8;">
+            <li>Completed a six-month Flutter internship focused on mobile UI development, navigation, reusable components, API-ready architecture, and application testing.</li>
+            <li>Built a Zepto-inspired grocery-commerce UI with responsive screens and reusable Flutter widgets.</li>
+            <li>Contributed to the Courier Mentor application by implementing courier/delivery screens and user flows.</li>
+          </ul>
+        </div>
+
+        <h4 style="color:#fff; text-transform:uppercase; font-size:0.85rem; letter-spacing:1px; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px;">EDUCATION</h4>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <div>
+            <strong>Master of Computer Applications (MCA)</strong> &bull; PG Degree College, Dharamshala (HP)
+          </div>
+          <div style="color:var(--accent-cyan);">CGPA: 7.39 | Aug 2023 - Jul 2025</div>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <div>
+            <strong>Bachelor of Computer Applications (BCA)</strong> &bull; MCM DAV College, Kangra (HP)
+          </div>
+          <div style="color:var(--accent-cyan);">CGPA: 7.69 | Aug 2020 - Jul 2023</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
