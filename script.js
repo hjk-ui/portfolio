@@ -407,7 +407,29 @@ function playPTTChirp(isStart = true) {
 }
 
 let activeAppKey = "marispeak";
+let activeSimulatorMode = "store"; // 'store' (Live Store UI) or 'prototype' (Interactive Lab)
 let isTransmitting = false;
+
+// Per-app active screenshot index tracker
+const appScreenIndices = {
+  marispeak: 0,
+  towtraces: 0,
+  viralflight: 0,
+  nvtusa: 0,
+  altrix: 0,
+  galaxyadvertisers: 0,
+  bid4style: 0
+};
+
+// Interactive prototype state variables
+let nvtHomeScore = 2;
+let nvtAwayScore = 1;
+let currentBidPrice = 11250;
+let cartCount = 3;
+let workModeActive = true;
+let callActive = false;
+let callSeconds = 0;
+let callInterval = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   renderProjectsGrid("all");
@@ -417,18 +439,188 @@ document.addEventListener("DOMContentLoaded", () => {
   setupContactForm();
 });
 
+// Mode Switcher Handler
+let slideAnimClass = "anim-fade-in";
+
+window.setSimulatorMode = function(mode) {
+  activeSimulatorMode = mode;
+  slideAnimClass = "anim-fade-in";
+  const storeBtn = document.getElementById("tabModeStore");
+  const protoBtn = document.getElementById("tabModePrototype");
+  const islandText = document.getElementById("islandText");
+
+  if (storeBtn) storeBtn.classList.toggle("active", mode === "store");
+  if (protoBtn) protoBtn.classList.toggle("active", mode === "prototype");
+  if (islandText) islandText.innerText = mode === "store" ? "Live Store UI" : "Flutter Lab";
+
+  renderSimulatorContent(activeAppKey);
+  triggerDynamicIslandAnimation();
+};
+
+// Screenshot Carousel Navigation with Directional Transition
+window.prevStoreScreenshot = function() {
+  const app = portfolioData.apps[activeAppKey];
+  if (!app || !app.screenshots || app.screenshots.length <= 1) return;
+  const current = appScreenIndices[activeAppKey] || 0;
+  appScreenIndices[activeAppKey] = (current - 1 + app.screenshots.length) % app.screenshots.length;
+  slideAnimClass = "anim-slide-prev";
+  renderSimulatorContent(activeAppKey);
+  triggerDynamicIslandAnimation();
+};
+
+window.nextStoreScreenshot = function() {
+  const app = portfolioData.apps[activeAppKey];
+  if (!app || !app.screenshots || app.screenshots.length <= 1) return;
+  const current = appScreenIndices[activeAppKey] || 0;
+  appScreenIndices[activeAppKey] = (current + 1) % app.screenshots.length;
+  slideAnimClass = "anim-slide-next";
+  renderSimulatorContent(activeAppKey);
+  triggerDynamicIslandAnimation();
+};
+
+window.jumpToScreenshot = function(idx) {
+  slideAnimClass = "anim-fade-in";
+  appScreenIndices[activeAppKey] = idx;
+  renderSimulatorContent(activeAppKey);
+  triggerDynamicIslandAnimation();
+};
+
 // Render Simulator Screen
 function renderSimulatorContent(appKey) {
   const container = document.getElementById("phoneAppContent");
   if (!container) return;
 
   const app = portfolioData.apps[appKey] || portfolioData.apps.marispeak;
+
+  // Dynamically update reactive phone glow & border highlight based on app branding
+  const glow = document.getElementById("phoneGlowBacking");
+  if (glow) {
+    glow.style.background = `radial-gradient(circle, ${app.badgeColor}55 0%, rgba(121, 40, 202, 0.22) 50%, transparent 75%)`;
+  }
+  const mockup = document.getElementById("phoneMockup");
+  if (mockup) {
+    mockup.style.borderColor = `${app.badgeColor}77`;
+    mockup.style.boxShadow = `0 30px 80px rgba(0, 0, 0, 0.85), 0 0 30px ${app.badgeColor}33, inset 0 0 0 2px #0a0e17`;
+  }
+
+  // Update Island capsule text
+  const islandText = document.getElementById("islandText");
+  if (islandText) {
+    islandText.innerText = activeSimulatorMode === "store" ? "Live Store UI" : "Flutter Lab";
+  }
+
+  // Check which mode to display
+  if (activeSimulatorMode === "store") {
+    renderStoreScreensView(app, container);
+  } else {
+    renderInteractivePrototypeView(app, container);
+  }
+}
+
+// 1. Render Live Store UI View (Real Play Store / App Store Screenshots & Metadata)
+function renderStoreScreensView(app, container) {
+  const screens = app.screenshots || [];
+  const currentIndex = appScreenIndices[app.id] || 0;
+  const currentScreen = screens[currentIndex] || screens[0] || {
+    title: app.name,
+    caption: app.tagline,
+    url: app.iconImage,
+    storeLabel: app.status
+  };
+
+  const hasMultiple = screens.length > 1;
+
+  let dotsHtml = "";
+  if (hasMultiple) {
+    dotsHtml = `
+      <div class="store-dots-row">
+        ${screens.map((_, i) => `
+          <span class="store-dot ${i === currentIndex ? 'active' : ''}" onclick="jumpToScreenshot(${i})" title="Screen ${i + 1}"></span>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  let storeBadgesHtml = "";
+  if (app.playStoreUrl && app.playStoreUrl !== "#") {
+    storeBadgesHtml += `
+      <a href="${app.playStoreUrl}" target="_blank" rel="noopener noreferrer" class="btn-store-external play-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <span>Google Play ↗</span>
+      </a>
+    `;
+  }
+  if (app.appStoreUrl && app.appStoreUrl !== "#") {
+    storeBadgesHtml += `
+      <a href="${app.appStoreUrl}" target="_blank" rel="noopener noreferrer" class="btn-store-external apple-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.85c.62-.75 1.04-1.8 0.93-2.85-.9.04-2 .6-2.65 1.35-.58.66-1.09 1.73-.95 2.76 1.01.08 2.05-.51 2.67-1.26z"/>
+        </svg>
+        <span>App Store ↗</span>
+      </a>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="store-ui-wrapper">
+      <div class="store-ui-header">
+        <div class="store-ui-app-meta">
+          <img src="${app.iconImage}" alt="${app.name}" class="store-ui-app-icon" />
+          <div>
+            <div class="store-ui-app-name">${app.name}</div>
+            <div class="store-ui-app-sub">Screen ${currentIndex + 1} of ${screens.length}</div>
+          </div>
+        </div>
+        <span class="store-badge-pill" style="background:${app.badgeColor}22; color:${app.badgeColor}; border:1px solid ${app.badgeColor}44;">
+          <span class="badge-pulse" style="background:${app.badgeColor};"></span>
+          Verified Live
+        </span>
+      </div>
+
+      <!-- Screenshot Canvas -->
+      <div class="store-screen-canvas">
+        <img 
+          src="${currentScreen.url}" 
+          alt="${currentScreen.title}" 
+          class="store-screen-img ${slideAnimClass}" 
+          loading="eager"
+          onerror="this.src='assets/bid4style_screen.jpg'"
+        />
+
+        ${hasMultiple ? `
+          <button class="store-carousel-nav prev" onclick="prevStoreScreenshot()" title="Previous Screen">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="store-carousel-nav next" onclick="nextStoreScreenshot()" title="Next Screen">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        ` : ''}
+
+        <div class="store-caption-overlay">
+          <div class="store-caption-title">${currentScreen.title}</div>
+          <div class="store-caption-desc">${currentScreen.caption}</div>
+        </div>
+      </div>
+
+      ${dotsHtml}
+
+      <div class="store-quick-actions">
+        ${storeBadgesHtml}
+      </div>
+    </div>
+  `;
+}
+
+// 2. Render Interactive Prototype Lab (Functional widgets, live sound effects & animations)
+function renderInteractivePrototypeView(app, container) {
   let screenHTML = "";
 
   switch (app.simulatorType) {
     case "marispeak":
       screenHTML = `
-        <div class="ptt-screen-view">
+        <div class="proto-view-wrap">
           <div>
             <div class="sim-header">
               <div class="sim-header-left">
@@ -462,7 +654,7 @@ function renderSimulatorContent(appKey) {
             </div>
           </div>
 
-          <div class="ptt-main-circle-wrap" style="margin:16px 0;">
+          <div class="ptt-main-circle-wrap">
             <button id="simPTTButton" class="ptt-btn ${isTransmitting ? 'transmitting' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -481,100 +673,88 @@ function renderSimulatorContent(appKey) {
               <span class="wave-bar"></span>
               <span class="wave-bar"></span>
             </div>
-            <div style="font-size:0.7rem; color:#94a3b8; margin-top:6px;" id="pttStatusText">
-              ${isTransmitting ? "Broadcasting live audio to Marina channel..." : "Instant boat-to-boat voice communication"}
+            <div style="font-size:0.7rem; color:#94a3b8; margin-top:6px; text-align:center;" id="pttStatusText">
+              ${isTransmitting ? "Broadcasting live audio to Marina Channel..." : "Press & Hold button for instant boat-to-boat audio"}
             </div>
           </div>
 
-          <div class="sim-card-box" style="padding:8px 10px; margin-bottom:8px;">
-            <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#94a3b8; margin-bottom:2px;">
-              <span>CallKit &bull; PushKit Background Audio</span>
-              <span style="color:#00f5a0; font-weight:700;">14ms Ping</span>
+          <div>
+            <div style="background:rgba(255,255,255,0.04); padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); font-size:0.68rem; margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; color:#94a3b8; margin-bottom:2px;">
+                <span>WebSocket Binary Stream</span>
+                <span style="color:#00f5a0; font-weight:700;">14ms Ping</span>
+              </div>
+              <div style="color:#cbd5e1; font-family:monospace; font-size:0.65rem;">
+                &check; CallKit + PushKit Wakeups Active
+              </div>
             </div>
-            <div style="font-size:0.68rem; color:#cbd5e1; font-family:monospace;">
-              &check; WebSocket Raw PCM Stream &bull; Firebase Auth
-            </div>
-          </div>
 
-          <button class="sim-action-btn" style="background:#0284c7; color:#fff;" onclick="openStoreModal('marispeak')">
-            Open MariSpeaks on App Store ↗
-          </button>
+            <button class="sim-action-btn" style="background:linear-gradient(135deg, #0284c7, #38bdf8); color:#fff;" onclick="setSimulatorMode('store')">
+              View Verified Store Screenshots 📸
+            </button>
+          </div>
         </div>
       `;
       break;
 
     case "towtraces":
       screenHTML = `
-        <div style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+        <div class="proto-view-wrap">
           <div>
             <div class="sim-header">
               <div class="sim-header-left">
                 <img src="assets/towtraces_icon.png" alt="TowTraces" class="sim-header-icon" />
                 <div>
                   <div class="sim-header-title">TowTraces</div>
-                  <div class="sim-header-sub">Utilities &bull; Find Towed Vehicles</div>
+                  <div class="sim-header-sub">Towed Vehicle Recovery</div>
                 </div>
               </div>
               <span class="sim-tag-badge" style="background:rgba(16,185,129,0.18); color:#10b981; border:1px solid rgba(16,185,129,0.3);">
-                iOS App Store
+                Supabase &bull; GPS
               </span>
             </div>
 
-            <!-- Segmented Pill Tabs from App Store Screenshot -->
-            <div class="sim-pill-group">
-              <div class="sim-pill active">Yard Overview</div>
-              <div class="sim-pill">Find Vehicle</div>
-            </div>
-
-            <!-- Yard Overview Stats Grid from Screenshot -->
-            <div class="sim-stats-grid">
-              <div class="sim-stat-tile" style="border-left:3px solid #10b981;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span class="sim-stat-val">21</span>
-                  <span style="font-size:0.9rem;">🚗</span>
-                </div>
-                <span class="sim-stat-lbl">Total Vehicles</span>
-              </div>
-              <div class="sim-stat-tile" style="border-left:3px solid #38bdf8;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span class="sim-stat-val">11</span>
-                  <span style="font-size:0.9rem;">📋</span>
-                </div>
-                <span class="sim-stat-lbl">Total Claims</span>
-              </div>
-            </div>
-
-            <!-- Find Your Towed Vehicle Instantly Card from Screenshot -->
-            <div class="sim-card-box" style="background:linear-gradient(135deg, rgba(16,185,129,0.15), rgba(15,23,42,0.9)); border-color:rgba(16,185,129,0.3); padding:10px;">
+            <!-- License Plate / VIN Search Input -->
+            <div class="sim-card-box" style="margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <span style="font-size:0.75rem; font-weight:800; color:#fff;">Find Your Towed Vehicle</span>
-                <span style="font-size:0.65rem; color:#10b981; font-weight:700;">60k+ Owners</span>
+                <span style="font-size:0.68rem; color:#94a3b8;">License Plate / VIN Number</span>
+                <span style="font-size:0.62rem; color:#10b981; font-weight:700;">CA Registered</span>
               </div>
-              <div style="font-size:0.68rem; color:#94a3b8; margin-bottom:8px;">Enter license plate or VIN number in seconds</div>
-
-              <div style="display:flex; gap:6px; margin-bottom:6px;">
-                <span style="font-size:0.65rem; padding:2px 8px; border-radius:10px; background:rgba(255,255,255,0.08); color:#94a3b8;">Licence Plate</span>
-                <span style="font-size:0.65rem; padding:2px 8px; border-radius:10px; background:#10b981; color:#0f172a; font-weight:800;">&bull; VIN</span>
-              </div>
-
-              <div style="background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:0.75rem; color:#fff; font-family:monospace; font-weight:700;">1HGBH41JXMN109186</span>
-                <span style="font-size:0.68rem; color:#10b981; font-weight:800;">&check; VERIFIED</span>
+              <div style="background:rgba(0,0,0,0.4); padding:8px 10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.82rem; font-weight:800; color:#fff; font-family:monospace;" id="vinNumberDisplay">1HGBH41JXMN109186</span>
+                <button style="background:#10b981; color:#0f172a; border:none; padding:4px 8px; border-radius:6px; font-weight:800; font-size:0.65rem; cursor:pointer;" onclick="simulateVINSearch()">Search</button>
               </div>
             </div>
 
-            <!-- Found Vehicle Status Tile -->
-            <div class="sim-card-box" style="padding:8px 10px; margin-bottom:8px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                <span style="font-size:0.72rem; font-weight:800; color:#fff;">ABC Towing Yard &bull; Lot #4</span>
-                <span style="font-size:0.65rem; color:#00f5a0; font-weight:700; background:rgba(0,245,160,0.15); padding:2px 6px; border-radius:8px;">Secured</span>
+            <!-- Yard Overview Card -->
+            <div class="sim-card-box" id="towYardResultCard" style="background:linear-gradient(135deg, rgba(16,185,129,0.18), rgba(15,23,42,0.85)); border-color:rgba(16,185,129,0.35); padding:10px; margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="font-size:0.75rem; font-weight:800; color:#10b981;">ABC Impound Yard &bull; Lot #4</span>
+                <span style="font-size:0.65rem; color:#00f5a0; font-weight:800; background:rgba(0,245,160,0.15); padding:2px 6px; border-radius:6px;">Secured</span>
               </div>
-              <div style="font-size:0.67rem; color:#94a3b8;">4.2 miles away &bull; Supabase Realtime Telemetry</div>
+              <div style="font-size:0.68rem; color:#cbd5e1; margin-bottom:4px;">
+                Vehicle: 2022 Honda Accord &bull; Gray Sedan
+              </div>
+              <div style="font-size:0.65rem; color:#94a3b8; background:rgba(0,0,0,0.35); padding:6px 8px; border-radius:6px;">
+                Release Desk: Open until 8:00 PM &bull; 4.2 miles away
+              </div>
+            </div>
+
+            <!-- Route Telematics Tile -->
+            <div class="sim-stats-grid" style="margin-bottom:8px;">
+              <div class="sim-stat-tile">
+                <span class="sim-stat-val" style="color:#00f5a0;">12 Min</span>
+                <span class="sim-stat-lbl">Transit ETA</span>
+              </div>
+              <div class="sim-stat-tile">
+                <span class="sim-stat-val" style="color:#38bdf8;">$185.00</span>
+                <span class="sim-stat-lbl">Standard Fee</span>
+              </div>
             </div>
           </div>
 
-          <button class="sim-action-btn" style="background:linear-gradient(135deg, #059669, #10b981); color:#fff;" onclick="openStoreModal('towtraces')">
-            View Live on Apple App Store ↗
+          <button class="sim-action-btn" style="background:linear-gradient(135deg, #059669, #10b981); color:#fff;" onclick="setSimulatorMode('store')">
+            View Live Apple App Store Screenshots ↗
           </button>
         </div>
       `;
@@ -582,7 +762,7 @@ function renderSimulatorContent(appKey) {
 
     case "viralflight":
       screenHTML = `
-        <div style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+        <div class="proto-view-wrap">
           <div>
             <div class="sim-header">
               <div class="sim-header-left">
@@ -593,56 +773,53 @@ function renderSimulatorContent(appKey) {
                 </div>
               </div>
               <span class="sim-tag-badge" style="background:rgba(244,63,94,0.18); color:#f43f5e; border:1px solid rgba(244,63,94,0.3);">
-                Creator Hub
+                Brands &bull; Creators
               </span>
             </div>
 
-            <!-- Creator Work Mode Banner from Screenshot -->
-            <div class="sim-card-box" style="background:linear-gradient(135deg, rgba(244,63,94,0.18), rgba(15,23,42,0.9)); border-color:rgba(244,63,94,0.35); padding:10px;">
+            <!-- Work Mode Toggle Bar -->
+            <div class="sim-card-box" style="padding:10px; margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-size:0.8rem; font-weight:800; color:#fff;">Creator Work Mode</div>
+                  <div style="font-size:0.65rem; color:#94a3b8;" id="workModeSubtitle">${workModeActive ? "Accepting brand deals & reels" : "Standby mode"}</div>
+                </div>
+                <button id="btnToggleWorkMode" style="background:${workModeActive ? '#00f5a0' : '#475569'}; color:#0f172a; border:none; padding:5px 12px; border-radius:12px; font-weight:900; font-size:0.7rem; cursor:pointer;" onclick="toggleWorkMode()">
+                  ${workModeActive ? "ACTIVE [ON]" : "OFF"}
+                </button>
+              </div>
+            </div>
+
+            <!-- Matched Brand Campaign -->
+            <div class="sim-card-box" style="background:linear-gradient(135deg, rgba(244,63,94,0.18), rgba(15,23,42,0.85)); border-color:rgba(244,63,94,0.35); padding:10px; margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <div>
-                  <div style="font-size:0.78rem; font-weight:800; color:#fff;">Work Mode Active</div>
-                  <div style="font-size:0.68rem; color:#94a3b8;">Good afternoon, Kartik &bull; Open for collabs</div>
-                </div>
-                <span style="background:#00f5a0; color:#0f172a; font-weight:900; font-size:0.65rem; padding:3px 9px; border-radius:12px; box-shadow:0 0 10px rgba(0,245,160,0.5);">ON</span>
+                <span style="font-size:0.75rem; font-weight:800; color:#fff;">Gaming Headset Reel Collab</span>
+                <span style="font-size:0.65rem; color:#f43f5e; font-weight:800; background:rgba(244,63,94,0.2); padding:2px 6px; border-radius:6px;">Matched</span>
               </div>
-              <div style="display:flex; gap:6px; margin-top:8px;">
-                <button style="flex:1; background:#f43f5e; border:none; color:#fff; font-size:0.68rem; font-weight:800; padding:5px; border-radius:6px; cursor:pointer;">Find Work</button>
-                <button style="flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:#cbd5e1; font-size:0.68rem; padding:5px; border-radius:6px; cursor:pointer;">About VF</button>
+              <div style="font-size:0.68rem; color:#cbd5e1; margin-bottom:6px;">
+                Brand: Razer India &bull; Escrow Verified
               </div>
-            </div>
-
-            <!-- Best Niche Matches from Screenshot -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding:0 2px;">
-              <span style="font-size:0.75rem; font-weight:800; color:#fff;">Best Niche Matches</span>
-              <span style="font-size:0.68rem; color:#f43f5e; font-weight:700;">View All</span>
-            </div>
-
-            <!-- Match Card 1 -->
-            <div class="sim-card-box" style="padding:8px 10px; margin-bottom:6px;">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div>
-                  <div style="font-size:0.74rem; font-weight:800; color:#fff;">Tech Unboxing Video</div>
-                  <div style="font-size:0.65rem; color:#38bdf8; margin-top:1px;">&bull; Tech &bull; INR 18,000</div>
-                </div>
-                <span style="font-size:0.65rem; background:rgba(0,245,160,0.15); color:#00f5a0; font-weight:800; padding:2px 6px; border-radius:8px;">95% match</span>
+              <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.35); padding:6px 8px; border-radius:6px;">
+                <span style="font-size:0.82rem; font-weight:800; color:#00f5a0;">₹35,000 Budget</span>
+                <button style="background:#f43f5e; color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:0.68rem; font-weight:800; cursor:pointer;" onclick="applyViralCampaign()">Apply Deal</button>
               </div>
             </div>
 
-            <!-- Match Card 2 -->
-            <div class="sim-card-box" style="padding:8px 10px; margin-bottom:8px;">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div>
-                  <div style="font-size:0.74rem; font-weight:800; color:#fff;">Cloud Kitchen Promo</div>
-                  <div style="font-size:0.65rem; color:#ec4899; margin-top:1px;">&bull; Food &bull; INR 25,000</div>
-                </div>
-                <span style="font-size:0.65rem; background:rgba(0,245,160,0.15); color:#00f5a0; font-weight:800; padding:2px 6px; border-radius:8px;">88% match</span>
+            <!-- Creator Stats Grid -->
+            <div class="sim-stats-grid" style="margin-bottom:8px;">
+              <div class="sim-stat-tile">
+                <span class="sim-stat-val" style="color:#f43f5e;">84.2K</span>
+                <span class="sim-stat-lbl">Followers Reach</span>
+              </div>
+              <div class="sim-stat-tile">
+                <span class="sim-stat-val" style="color:#00f5a0;">4.8%</span>
+                <span class="sim-stat-lbl">Engagement</span>
               </div>
             </div>
           </div>
 
-          <button class="sim-action-btn" style="background:#f43f5e; color:#fff;" onclick="openStoreModal('viralflight')">
-            Open Viral Flight on App Store ↗
+          <button class="sim-action-btn" style="background:#f43f5e; color:#fff;" onclick="setSimulatorMode('store')">
+            View Live App Store & Play Store Screens 📸
           </button>
         </div>
       `;
@@ -650,77 +827,57 @@ function renderSimulatorContent(appKey) {
 
     case "nvtusa":
       screenHTML = `
-        <div style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+        <div class="proto-view-wrap">
           <div>
             <div class="sim-header">
               <div class="sim-header-left">
                 <img src="assets/nvtusa_icon.png" alt="NVT USA" class="sim-header-icon" style="background:#fff;" />
                 <div>
                   <div class="sim-header-title">NVT USA</div>
-                  <div class="sim-header-sub">National Veterans Tournament</div>
+                  <div class="sim-header-sub">Veterans Tournament Since 2015</div>
                 </div>
               </div>
               <span class="sim-tag-badge" style="background:rgba(234,179,8,0.18); color:#eab308; border:1px solid rgba(234,179,8,0.3);">
-                5.0 &starf; Sports
+                Live Brackets
               </span>
             </div>
 
-            <!-- Matches Overview Header from Screenshot -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <span style="font-size:0.75rem; font-weight:800; color:#fff;">Matches &bull; NVT Tournament</span>
-              <span style="font-size:0.68rem; color:#94a3b8;">66 Games</span>
-            </div>
-
-            <!-- Stats Row from Screenshot -->
-            <div class="sim-stats-grid" style="grid-template-columns:repeat(3, 1fr); gap:6px; margin-bottom:8px;">
-              <div class="sim-stat-tile" style="padding:6px; text-align:center;">
-                <span class="sim-stat-val" style="color:#ef4444; font-size:1rem;">0</span>
-                <span class="sim-stat-lbl">Live</span>
+            <!-- Tournament Match Scoreboard Card -->
+            <div class="sim-card-box" style="background:linear-gradient(135deg, rgba(30,58,138,0.5), rgba(15,23,42,0.85)); border-color:rgba(234,179,8,0.4); padding:10px; text-align:center; margin-bottom:8px;">
+              <div style="font-size:0.68rem; color:#eab308; font-weight:800; letter-spacing:0.5px; margin-bottom:6px;">
+                🏆 CHAMPIONSHIP FINAL &bull; FIELD 10 &bull; LIVE
               </div>
-              <div class="sim-stat-tile" style="padding:6px; text-align:center;">
-                <span class="sim-stat-val" style="color:#eab308; font-size:1rem;">65</span>
-                <span class="sim-stat-lbl">Upcoming</span>
-              </div>
-              <div class="sim-stat-tile" style="padding:6px; text-align:center;">
-                <span class="sim-stat-val" style="color:#00f5a0; font-size:1rem;">1</span>
-                <span class="sim-stat-lbl">Completed</span>
-              </div>
-            </div>
-
-            <!-- Filter Pills from Screenshot -->
-            <div class="sim-pill-group" style="margin-bottom:8px;">
-              <div class="sim-pill active">All</div>
-              <div class="sim-pill">Live</div>
-              <div class="sim-pill">Upcoming</div>
-              <div class="sim-pill">Results</div>
-            </div>
-
-            <!-- Match Card from Screenshot -->
-            <div class="sim-card-box" style="background:linear-gradient(135deg, rgba(30,58,138,0.4), rgba(15,23,42,0.9)); border-color:rgba(234,179,8,0.35); padding:10px; margin-bottom:8px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span style="font-size:0.65rem; background:#059669; color:#fff; font-weight:800; padding:2px 6px; border-radius:4px;">FINAL</span>
-                <span style="font-size:0.65rem; color:#eab308; font-weight:700;">FIELD 10 &bull; LIVE</span>
-              </div>
-
-              <div style="display:flex; justify-content:space-around; align-items:center; padding:4px 0;">
-                <div style="text-align:center; flex:1;">
-                  <div style="font-size:0.78rem; font-weight:800; color:#fff;">RALEIGH</div>
-                  <div style="font-size:1.3rem; font-weight:900; color:#38bdf8;">2</div>
+              <div style="display:flex; justify-content:space-around; align-items:center; margin-bottom:6px;">
+                <div>
+                  <div style="font-size:0.8rem; font-weight:800; color:#fff;">RALEIGH</div>
+                  <div style="font-size:1.5rem; font-weight:900; color:#38bdf8;" id="nvtHomeScore">${nvtHomeScore}</div>
                 </div>
-                <span style="font-size:0.75rem; color:#64748b; font-weight:800;">VS</span>
-                <div style="text-align:center; flex:1;">
-                  <div style="font-size:0.78rem; font-weight:800; color:#fff;">RICHMOND</div>
-                  <div style="font-size:1.3rem; font-weight:900; color:#eab308;">1</div>
+                <div style="font-size:0.75rem; color:#64748b; font-weight:800;">VS</div>
+                <div>
+                  <div style="font-size:0.8rem; font-weight:800; color:#fff;">RICHMOND</div>
+                  <div style="font-size:1.5rem; font-weight:900; color:#eab308;" id="nvtAwayScore">${nvtAwayScore}</div>
                 </div>
               </div>
-              <div style="text-align:center; font-size:0.66rem; color:#94a3b8; margin-top:4px;">
-                88:24 &bull; 54 Teams &bull; 32 States
+              <button style="background:rgba(234,179,8,0.2); border:1px solid rgba(234,179,8,0.4); color:#eab308; padding:3px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; cursor:pointer;" onclick="simulateNVTGoal()">
+                ⚽ Simulate Match Goal
+              </button>
+            </div>
+
+            <!-- Tournament Matrix Specs -->
+            <div class="sim-stats-grid" style="margin-bottom:8px;">
+              <div class="sim-stat-tile">
+                <span class="sim-stat-val" style="color:#eab308;">54</span>
+                <span class="sim-stat-lbl">Clubs Competing</span>
+              </div>
+              <div class="sim-stat-tile">
+                <span class="sim-stat-val" style="color:#38bdf8;">32</span>
+                <span class="sim-stat-lbl">US States</span>
               </div>
             </div>
           </div>
 
-          <button class="sim-action-btn" style="background:#eab308; color:#0f172a;" onclick="openStoreModal('nvtusa')">
-            Open NVT USA Store Page ↗
+          <button class="sim-action-btn" style="background:#eab308; color:#0f172a;" onclick="setSimulatorMode('store')">
+            View Live App Store Tournament Screens ↗
           </button>
         </div>
       `;
@@ -728,7 +885,7 @@ function renderSimulatorContent(appKey) {
 
     case "altrix":
       screenHTML = `
-        <div style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+        <div class="proto-view-wrap">
           <div>
             <div class="sim-header">
               <div class="sim-header-left">
@@ -739,11 +896,11 @@ function renderSimulatorContent(appKey) {
                 </div>
               </div>
               <span class="sim-tag-badge" style="background:rgba(99,102,241,0.18); color:#6366f1; border:1px solid rgba(99,102,241,0.3);">
-                Play Store
+                Play Store Live
               </span>
             </div>
 
-            <!-- Doctor Appointment Card from Description -->
+            <!-- Doctor Card -->
             <div class="sim-card-box" style="background:linear-gradient(135deg, rgba(99,102,241,0.2), rgba(15,23,42,0.9)); border-color:rgba(99,102,241,0.35); padding:10px; margin-bottom:8px;">
               <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                 <div style="width:34px; height:34px; border-radius:50%; background:#6366f1; display:flex; align-items:center; justify-content:center; font-size:1rem;">🩺</div>
@@ -755,35 +912,41 @@ function renderSimulatorContent(appKey) {
 
               <div style="background:rgba(0,0,0,0.35); padding:6px 8px; border-radius:8px; font-size:0.68rem; margin-bottom:8px;">
                 <div style="color:#cbd5e1;">Today at 5:00 PM &bull; Confirmed</div>
-                <div style="color:#00f5a0; font-weight:700; margin-top:2px;">Real-Time Audio Calling Ready</div>
+                <div style="color:#00f5a0; font-weight:700; margin-top:2px;" id="altrixCallStatus">
+                  ${callActive ? `📞 Call Connected: 00:${callSeconds < 10 ? '0' + callSeconds : callSeconds}` : "Real-Time Audio Calling Ready"}
+                </div>
               </div>
 
               <div style="display:flex; gap:6px;">
-                <button style="flex:1; background:#6366f1; color:#fff; border:none; padding:6px; border-radius:6px; font-size:0.68rem; font-weight:800; cursor:pointer;" onclick="alert('Starting Audio Consultation...')">📞 Audio Call</button>
-                <button style="flex:1; background:#00f5a0; color:#0f172a; border:none; padding:6px; border-radius:6px; font-size:0.68rem; font-weight:800; cursor:pointer;" onclick="alert('Connecting to Virtual Video Consult...')">📹 Video Call</button>
+                <button style="flex:1; background:#6366f1; color:#fff; border:none; padding:6px; border-radius:6px; font-size:0.68rem; font-weight:800; cursor:pointer;" onclick="toggleAltrixCall()">
+                  ${callActive ? "End Audio Call" : "📞 Audio Call"}
+                </button>
+                <button style="flex:1; background:#00f5a0; color:#0f172a; border:none; padding:6px; border-radius:6px; font-size:0.68rem; font-weight:800; cursor:pointer;" onclick="alert('Connecting to Virtual Video Consult...')">
+                  📹 Video Call
+                </button>
               </div>
             </div>
 
-            <!-- Daily Wellness Check In Vitals -->
-            <div style="font-size:0.75rem; font-weight:800; color:#fff; margin-bottom:6px;">Daily Wellness Vitals</div>
+            <!-- Daily Wellness Vitals -->
+            <div style="font-size:0.72rem; font-weight:800; color:#fff; margin-bottom:4px;">Daily Wellness Vitals</div>
             <div class="sim-stats-grid" style="grid-template-columns:repeat(3, 1fr); gap:6px; margin-bottom:8px;">
               <div class="sim-stat-tile" style="padding:6px; text-align:center;">
-                <span class="sim-stat-val" style="color:#00f5a0; font-size:0.9rem;">Low</span>
+                <span class="sim-stat-val" style="color:#00f5a0; font-size:0.85rem;">Low</span>
                 <span class="sim-stat-lbl">Stress</span>
               </div>
               <div class="sim-stat-tile" style="padding:6px; text-align:center;">
-                <span class="sim-stat-val" style="color:#38bdf8; font-size:0.9rem;">Optimal</span>
+                <span class="sim-stat-val" style="color:#38bdf8; font-size:0.85rem;">Optimal</span>
                 <span class="sim-stat-lbl">Mood</span>
               </div>
               <div class="sim-stat-tile" style="padding:6px; text-align:center;">
-                <span class="sim-stat-val" style="color:#a855f7; font-size:0.9rem;">7h 45m</span>
+                <span class="sim-stat-val" style="color:#a855f7; font-size:0.85rem;">7h 45m</span>
                 <span class="sim-stat-lbl">Sleep</span>
               </div>
             </div>
           </div>
 
-          <button class="sim-action-btn" style="background:linear-gradient(135deg, #4f46e5, #6366f1); color:#fff;" onclick="openStoreModal('altrix')">
-            Google Play Store Page ↗
+          <button class="sim-action-btn" style="background:linear-gradient(135deg, #4f46e5, #6366f1); color:#fff;" onclick="setSimulatorMode('store')">
+            View Live Google Play Store Screens ↗
           </button>
         </div>
       `;
@@ -791,7 +954,7 @@ function renderSimulatorContent(appKey) {
 
     case "galaxy":
       screenHTML = `
-        <div style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+        <div class="proto-view-wrap">
           <div>
             <div class="sim-header">
               <div class="sim-header-left">
@@ -806,13 +969,13 @@ function renderSimulatorContent(appKey) {
               </span>
             </div>
 
-            <!-- Haridwar Prime Billboard Site Card -->
+            <!-- Billboard Site Card -->
             <div class="sim-card-box" style="background:linear-gradient(135deg, rgba(139,92,246,0.2), rgba(15,23,42,0.9)); border-color:rgba(139,92,246,0.35); padding:10px; margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <span style="font-size:0.75rem; font-weight:800; color:#fff;">Site #HW-108: Ranipur More</span>
                 <span style="font-size:0.65rem; color:#00f5a0; font-weight:800; background:rgba(0,245,160,0.15); padding:2px 6px; border-radius:6px;">Active LED</span>
               </div>
-              <div style="font-size:0.68rem; color:#cbd5e1; margin-bottom:6px;">Dimensions: 40x20 ft &bull; Bypass Highway Corridor</div>
+              <div style="font-size:0.68rem; color:#cbd5e1; margin-bottom:4px;">Dimensions: 40x20 ft &bull; Bypass Highway Corridor</div>
               <div style="font-size:0.65rem; color:#94a3b8; background:rgba(0,0,0,0.35); padding:5px 8px; border-radius:6px;">
                 Haridwar Client Campaign Live &bull; 98.4% Uptime
               </div>
@@ -833,8 +996,8 @@ function renderSimulatorContent(appKey) {
             </div>
           </div>
 
-          <button class="sim-action-btn" style="background:#8b5cf6; color:#fff;" onclick="openStoreModal('galaxyadvertisers')">
-            Google Play Store Page ↗
+          <button class="sim-action-btn" style="background:#8b5cf6; color:#fff;" onclick="setSimulatorMode('store')">
+            View Live Google Play Store Screens ↗
           </button>
         </div>
       `;
@@ -842,7 +1005,7 @@ function renderSimulatorContent(appKey) {
 
     case "bid4style":
       screenHTML = `
-        <div style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+        <div class="proto-view-wrap">
           <div>
             <div class="sim-header">
               <div class="sim-header-left">
@@ -857,16 +1020,16 @@ function renderSimulatorContent(appKey) {
               </span>
             </div>
 
-            <!-- Flash Auction Banner -->
+            <!-- Flash Auction Card -->
             <div class="sim-card-box" style="background:linear-gradient(135deg, rgba(236,72,153,0.2), rgba(15,23,42,0.9)); border-color:rgba(236,72,153,0.35); padding:10px; margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <span style="font-size:0.75rem; font-weight:800; color:#fff;">⚡ Flash Auction Live</span>
                 <span style="font-size:0.65rem; color:#ec4899; font-weight:800; background:rgba(236,72,153,0.2); padding:2px 6px; border-radius:6px;">Ends in 12m 45s</span>
               </div>
-              <div style="font-size:0.68rem; color:#cbd5e1;">Vintage Denim Jacket &bull; Unisex Fit</div>
+              <div style="font-size:0.68rem; color:#cbd5e1;">CyberRun Sneaker V2 &bull; Limited Drop</div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                <span style="font-size:0.85rem; font-weight:900; color:#00f5a0;">Current: ₹1,850</span>
-                <button style="background:#ec4899; border:none; color:#fff; font-size:0.68rem; font-weight:800; padding:4px 10px; border-radius:6px; cursor:pointer;" onclick="alert('Bid Placed for ₹1,900!')">Place Bid</button>
+                <span style="font-size:0.95rem; font-weight:900; color:#00f5a0;" id="bidPriceDisplay">₹${currentBidPrice.toLocaleString()}</span>
+                <button style="background:#ec4899; border:none; color:#fff; font-size:0.68rem; font-weight:800; padding:5px 12px; border-radius:6px; cursor:pointer;" onclick="placeBidStyle()">Place Bid (+₹500)</button>
               </div>
             </div>
 
@@ -875,15 +1038,15 @@ function renderSimulatorContent(appKey) {
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
                   <div style="font-size:0.75rem; font-weight:800; color:#fff;">Riverpod Cart State</div>
-                  <div style="font-size:0.67rem; color:#94a3b8;">2 items &bull; Role-based Admin/User</div>
+                  <div style="font-size:0.67rem; color:#94a3b8;" id="cartCountDisplay">${cartCount} items &bull; Role-based Admin/User</div>
                 </div>
-                <span style="font-size:0.72rem; color:#00f5a0; font-weight:800;">₹4,250 Total</span>
+                <span style="font-size:0.75rem; color:#00f5a0; font-weight:800;">₹18,450 Total</span>
               </div>
             </div>
           </div>
 
-          <button class="sim-action-btn" style="background:#ec4899; color:#fff;" onclick="openStoreModal('bid4style')">
-            Explore Bid4Style Architecture ↗
+          <button class="sim-action-btn" style="background:#ec4899; color:#fff;" onclick="setSimulatorMode('store')">
+            View Live Flutter UI Screen 📸
           </button>
         </div>
       `;
@@ -896,6 +1059,74 @@ function renderSimulatorContent(appKey) {
     setupPTTEvents();
   }
 }
+
+// Interactive Helper Functions
+window.simulateVINSearch = function() {
+  const card = document.getElementById("towYardResultCard");
+  const vin = document.getElementById("vinNumberDisplay");
+  if (card && vin) {
+    card.style.opacity = "0.5";
+    setTimeout(() => {
+      card.style.opacity = "1";
+      alert("Supabase Realtime Query: Vehicle found in Lot #4! Desk open until 8 PM.");
+    }, 300);
+  }
+};
+
+window.toggleWorkMode = function() {
+  workModeActive = !workModeActive;
+  const btn = document.getElementById("btnToggleWorkMode");
+  const sub = document.getElementById("workModeSubtitle");
+  if (btn) {
+    btn.innerText = workModeActive ? "ACTIVE [ON]" : "OFF";
+    btn.style.background = workModeActive ? "#00f5a0" : "#475569";
+  }
+  if (sub) {
+    sub.innerText = workModeActive ? "Accepting brand deals & reels" : "Standby mode";
+  }
+};
+
+window.applyViralCampaign = function() {
+  alert("✓ Application submitted! Escrow contract locked for ₹35,000 via Viral Flight.");
+};
+
+window.simulateNVTGoal = function() {
+  nvtHomeScore++;
+  const el = document.getElementById("nvtHomeScore");
+  if (el) {
+    el.innerText = nvtHomeScore;
+    el.style.transform = "scale(1.3)";
+    setTimeout(() => el.style.transform = "scale(1)", 300);
+  }
+};
+
+window.toggleAltrixCall = function() {
+  callActive = !callActive;
+  const status = document.getElementById("altrixCallStatus");
+  if (callActive) {
+    callSeconds = 0;
+    playPTTChirp(true);
+    callInterval = setInterval(() => {
+      callSeconds++;
+      if (status) status.innerText = `📞 Call Connected: 00:${callSeconds < 10 ? '0' + callSeconds : callSeconds}`;
+    }, 1000);
+  } else {
+    clearInterval(callInterval);
+    playPTTChirp(false);
+    if (status) status.innerText = "Real-Time Audio Calling Ready";
+  }
+  renderSimulatorContent("altrix");
+};
+
+window.placeBidStyle = function() {
+  currentBidPrice += 500;
+  cartCount++;
+  const priceEl = document.getElementById("bidPriceDisplay");
+  const cartEl = document.getElementById("cartCountDisplay");
+  if (priceEl) priceEl.innerText = `₹${currentBidPrice.toLocaleString()}`;
+  if (cartEl) cartEl.innerText = `${cartCount} items • Role-based Admin/User`;
+  alert(`✓ Bid placed! Highest bid updated to ₹${currentBidPrice.toLocaleString()}`);
+};
 
 function setupPTTEvents() {
   const pttBtn = document.getElementById("simPTTButton");
@@ -942,22 +1173,114 @@ function setupPhoneSimulator() {
       const appKey = btn.dataset.app;
       activeAppKey = appKey;
       renderSimulatorContent(appKey);
+      triggerDynamicIslandAnimation();
     });
+  });
+
+  // Setup Touch Swipe Navigation for Mobile
+  setupMobileSwipeGestures();
+
+  // Setup 3D Tilt perspective effect for Desktop
+  setupDevice3DTilt();
+}
+
+// Dynamic Island Spring Expand Micro-Animation
+function triggerDynamicIslandAnimation() {
+  const island = document.querySelector(".phone-island");
+  if (!island) return;
+  island.classList.remove("island-bounce");
+  // trigger reflow
+  void island.offsetWidth;
+  island.classList.add("island-bounce");
+}
+
+// Mobile Touch Swipe Gesture Support on Simulator Screen
+function setupMobileSwipeGestures() {
+  const phoneViewport = document.getElementById("phoneAppContent");
+  if (!phoneViewport) return;
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+
+  phoneViewport.addEventListener("touchstart", (e) => {
+    if (e.touches && e.touches.length > 0) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  phoneViewport.addEventListener("touchend", (e) => {
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      touchEndX = e.changedTouches[0].clientX;
+      touchEndY = e.changedTouches[0].clientY;
+      handleSwipe();
+    }
+  }, { passive: true });
+
+  function handleSwipe() {
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    // Only detect swipe if horizontal movement is dominant and > 40px
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
+      if (activeSimulatorMode === "store") {
+        if (deltaX < 0) {
+          // Swiped left -> next screenshot
+          window.nextStoreScreenshot();
+        } else {
+          // Swiped right -> prev screenshot
+          window.prevStoreScreenshot();
+        }
+      }
+    }
+  }
+}
+
+// 3D Tilt Interaction on Desktop Mouse Move
+function setupDevice3DTilt() {
+  const showcaseWrap = document.getElementById("deviceShowcase");
+  const mockup = document.getElementById("phoneMockup");
+  if (!showcaseWrap || !mockup) return;
+
+  // Only enable on non-touch screens with mouse
+  if (window.matchMedia("(pointer: coarse)").matches) return;
+
+  showcaseWrap.addEventListener("mousemove", (e) => {
+    const rect = showcaseWrap.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Subtle rotation angles
+    const rotateX = ((y - centerY) / centerY) * -7;
+    const rotateY = ((x - centerX) / centerX) * 7;
+
+    mockup.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.015, 1.015, 1.015)`;
+  });
+
+  showcaseWrap.addEventListener("mouseleave", () => {
+    mockup.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
   });
 }
 
 window.switchSimulatorApp = function(appKey) {
   activeAppKey = appKey;
+  slideAnimClass = "anim-fade-in";
   const tabButtons = document.querySelectorAll(".phone-tab-btn");
   tabButtons.forEach(b => {
     if (b.dataset.app === appKey) {
       b.classList.add("active");
+      // Auto-scroll the active tab into view in the controller bar
+      b.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
     } else {
       b.classList.remove("active");
     }
   });
 
   renderSimulatorContent(appKey);
+  triggerDynamicIslandAnimation();
 
   const sim = document.getElementById("deviceShowcase");
   if (sim) {
